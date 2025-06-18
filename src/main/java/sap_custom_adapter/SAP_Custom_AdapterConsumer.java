@@ -47,29 +47,8 @@ public class SAP_Custom_AdapterConsumer extends ScheduledPollConsumer {
     @Override
     protected int poll() throws Exception {
         Exchange exchange = endpoint.createExchange();
+		return 0;
 
-         // create a message body
-        String greetingsMessage = endpoint.getGreetingsMessage();
-        Date now = new Date();
-        if(greetingsMessage == null || greetingsMessage.isEmpty()){
-        	LOG.error("The message is empty! Default one will be used");
-        	greetingsMessage = "Hello There!! ";
-        }
-        StringBuilder builder = new StringBuilder(greetingsMessage);
-        builder.append(" Now it is ");
-        builder.append(now.toString());
-        
-        exchange.getIn().setBody(builder.toString());
-
-        try {
-            // send message to next processor in the route
-            getProcessor().process(exchange);
-            return 1; // number of messages polled
-        } finally {
-            // log exception if an exception occurred and was not handled
-            if (exchange.getException() != null) {
-                getExceptionHandler().handleException("Error processing exchange", exchange, exchange.getException());
-            }
-        }
+      
     }
 }

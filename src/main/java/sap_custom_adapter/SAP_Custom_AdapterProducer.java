@@ -39,17 +39,7 @@ public class SAP_Custom_AdapterProducer extends DefaultProducer {
     }
 
     public void process(final Exchange exchange) throws Exception {
-        String input = exchange.getIn().getBody(String.class);
-		String greetingMessage = endpoint.getGreetingsMessage();
-		if(greetingMessage == null || greetingMessage.isEmpty()) {
-			greetingMessage = "Hello!";
-		}
-		String messageInUpperCase = greetingMessage.toUpperCase();
-		if (input != null) {
-		    LOG.debug(input);
-			messageInUpperCase = input + " : " + messageInUpperCase;
-		}
-		exchange.getIn().setBody(messageInUpperCase);
+       
     }
 
 }

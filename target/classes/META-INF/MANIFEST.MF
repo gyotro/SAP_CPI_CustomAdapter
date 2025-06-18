@@ -1,14 +1,16 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1750256434603
 Build-Jdk-Spec: 21
 Bundle-ManifestVersion: 2
 Bundle-Name: SAP_Custom_Adapter.SAP_Custom_Adapter
 Bundle-SymbolicName: SAP_Custom_Adapter
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0
 Created-By: Apache Maven Bundle Plugin 6.0.0
-Export-Package: sap_custom_adapter;uses:="org.apache.camel,org.apache.ca
- mel.impl,org.apache.camel.spi";version="1.0.0"
-Import-Package: java.lang,java.net,java.util,org.apache.camel,org.apache
- .camel.impl,org.apache.camel.spi,org.slf4j
+Export-Package: sap_custom_adapter;version="1.0.0"
+Import-Package: java.lang,java.util,org.apache.camel,org.apache.camel.im
+ pl,org.apache.camel.spi,org.slf4j
+Include-Resource: META-INF/services/org/apache/camel/component/sap-sampl
+ e=src/main/resources/META-INF/services/org/apache/camel/component/sap-s
+ ample,metadata/metadata.xml=src/main/resources/metadata/metadata.xml
+Private-Package: metadata
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
 Tool: Bnd-7.0.0.202310060912

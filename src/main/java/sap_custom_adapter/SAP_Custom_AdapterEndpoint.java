@@ -24,53 +24,56 @@ import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
 import org.apache.camel.impl.DefaultPollingEndpoint;
+import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lombok.*;
+
 /**
  * Represents a www.Sample.com Camel endpoint.
  */
-@UriEndpoint(scheme = "sap-sample", syntax = "", title = "")
-public class SAP_Custom_AdapterEndpoint extends DefaultPollingEndpoint {
-    private SAP_Custom_AdapterComponent component;
+@Getter
+@Setter
+@ToString
+@UriEndpoint(firstVersion = "1.0.0", scheme = "jdbcCustom", title = "JDBC Custom Polling Adapter", syntax = "jdbcCustom://name", producerOnly = false, consumerOnly = false)
+public class SAP_Custom_AdapterEndpoint extends DefaultEndpoint {
 
-    private transient Logger logger = LoggerFactory.getLogger(SAP_Custom_AdapterEndpoint.class);
+    @UriParam(label = "common", description = "JDBC URL to connect to the DB")
+    private String jdbcUrl;
 
-    @UriParam
-    private String greetingsMessage;
+    @UriParam(label = "security", description = "DB username")
+    private String username;
 
-	public String getGreetingsMessage() {
-		return greetingsMessage;
-	}
+    @UriParam(label = "security", secret = true, description = "DB password")
+    private String password;
 
-	public void setGreetingsMessage(String greetingsMessage) {
-		this.greetingsMessage = greetingsMessage;
-	}
+    @UriParam(label = "consumer", description = "SQL query to execute periodically")
+    private String selectQuery;
 
-	public SAP_Custom_AdapterEndpoint() {
+    @UriParam(label = "producer", description = "SQL update to mark data as processed")
+    private String updateQuery;
+
+    @UriParam(label = "consumer", defaultValue = "60000", description = "Polling interval in milliseconds")
+    private long pollingInterval = 60000L;
+
+    public SAP_Custom_AdapterEndpoint(String uri, String remaining, SAP_Custom_AdapterComponent component) {
+        super(uri, component);
     }
 
-    public SAP_Custom_AdapterEndpoint(final String endpointUri, final SAP_Custom_AdapterComponent component) throws URISyntaxException {
-        super(endpointUri, component);
-        this.component = component;
-    }
-
-    public SAP_Custom_AdapterEndpoint(final String uri, final String remaining, final SAP_Custom_AdapterComponent component) throws URISyntaxException {
-        this(uri, component);
-    }
-
+    @Override
     public Producer createProducer() throws Exception {
         return new SAP_Custom_AdapterProducer(this);
     }
 
+    @Override
     public Consumer createConsumer(Processor processor) throws Exception {
-        final SAP_Custom_AdapterConsumer consumer = new SAP_Custom_AdapterConsumer(this, processor);
-        configureConsumer(consumer);
-        return consumer;
+        return new SAP_Custom_AdapterConsumer(this, processor);
     }
 
+    @Override
     public boolean isSingleton() {
         return true;
     }
