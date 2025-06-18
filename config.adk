@@ -1,0 +1,7 @@
+#Properties file
+#Mon Jun 16 17:49:00 CEST 2025
+Adapter-ID=SAP_Custom_Adapter
+Adapter-Name=SAP_Custom_Adapter
+Adapter-Vendor=esa
+Adapter-Version=1.0
+Enable-Maven=true
