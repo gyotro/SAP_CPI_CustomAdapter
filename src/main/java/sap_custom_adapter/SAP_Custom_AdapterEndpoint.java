@@ -20,6 +20,7 @@ package sap_custom_adapter;
 
 import java.net.URISyntaxException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
@@ -27,6 +28,7 @@ import org.apache.camel.impl.DefaultPollingEndpoint;
 import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
+//import org.apache.camel.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,38 +40,61 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-@UriEndpoint(firstVersion = "1.0.0", scheme = "jdbcCustom", title = "JDBC Custom Polling Adapter", syntax = "jdbcCustom://name", producerOnly = false, consumerOnly = false)
+@Slf4j
+@UriEndpoint(
+        firstVersion = "1.0.0",
+        scheme = "jdbcCustom",
+        title = "JDBC Custom Polling Adapter",
+        syntax = "jdbcCustom://name",
+        producerOnly = false,
+        consumerOnly = false
+ //       category = {Category.DATABASE}
+)
 public class SAP_Custom_AdapterEndpoint extends DefaultEndpoint {
 
-    @UriParam(label = "common", description = "JDBC URL to connect to the DB")
-    private String jdbcUrl;
+    @UriParam(label = "connection", description = "Cloud Connector Location")
+    private String cloudConnectorLocation;
 
-    @UriParam(label = "security", description = "DB username")
-    private String username;
+    @UriParam(label = "connection", description = "Database Host")
+    private String dbHost;
 
-    @UriParam(label = "security", secret = true, description = "DB password")
-    private String password;
+    @UriParam(label = "connection", description = "Database Port")
+    private String dbPort;
 
-    @UriParam(label = "consumer", description = "SQL query to execute periodically")
+    @UriParam(label = "connection", description = "Custom JDBC connection string suffix")
+    private String customConnectionString;
+
+    @UriParam(label = "security", description = "Database User")
+    private String dbUser;
+
+    @UriParam(label = "security", description = "Database Password", secret = true)
+    private String dbPassword;
+
+    @UriParam(label = "query", description = "SQL SELECT query for polling")
     private String selectQuery;
 
-    @UriParam(label = "producer", description = "SQL update to mark data as processed")
+    @UriParam(label = "query", description = "SQL UPDATE query for outbound data")
     private String updateQuery;
 
-    @UriParam(label = "consumer", defaultValue = "60000", description = "Polling interval in milliseconds")
-    private long pollingInterval = 60000L;
+    @UriParam(label = "polling", description = "Polling interval in milliseconds", defaultValue = "10000")
+    private long pollingInterval = 600000L;
+
+
 
     public SAP_Custom_AdapterEndpoint(String uri, String remaining, SAP_Custom_AdapterComponent component) {
         super(uri, component);
+        log.info("Endpoint created with URI: {}", uri);
     }
 
     @Override
     public Producer createProducer() throws Exception {
+        log.info("Creating producer for JDBC update query: {}", updateQuery);
         return new SAP_Custom_AdapterProducer(this);
     }
 
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
+        log.info("Creating consumer for JDBC polling query: {}", selectQuery);
         return new SAP_Custom_AdapterConsumer(this, processor);
     }
 

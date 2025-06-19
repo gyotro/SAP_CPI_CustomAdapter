@@ -19,17 +19,17 @@ package sap_custom_adapter;
 
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
 import org.apache.camel.impl.UriEndpointComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 /**
  * Represents the component that manages.
  */
+@Slf4j
 public class SAP_Custom_AdapterComponent extends UriEndpointComponent {
+
     public SAP_Custom_AdapterComponent() {
         super(SAP_Custom_AdapterEndpoint.class);
     }
@@ -37,7 +37,7 @@ public class SAP_Custom_AdapterComponent extends UriEndpointComponent {
     public SAP_Custom_AdapterComponent(CamelContext context) {
         super(context, SAP_Custom_AdapterEndpoint.class);
     }
-    private Logger LOG = LoggerFactory.getLogger(SAP_Custom_AdapterComponent.class);
+    //private Logger LOG = LoggerFactory.getLogger(SAP_Custom_AdapterComponent.class);
 
 //    protected Endpoint createEndpoint(final String uri, final String remaining, final Map<String, Object> parameters) throws Exception {
 //        LOG.info("Creating the end point");
@@ -47,7 +47,7 @@ public class SAP_Custom_AdapterComponent extends UriEndpointComponent {
 //    }
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
-        LOG.info("Creating endpoint for URI: {}", uri);
+        log.info("Creating endpoint for URI: {}", uri);
         SAP_Custom_AdapterEndpoint endpoint = new SAP_Custom_AdapterEndpoint(uri, remaining, this);
         setProperties(endpoint, parameters); // sets @UriParam fields
         return endpoint;

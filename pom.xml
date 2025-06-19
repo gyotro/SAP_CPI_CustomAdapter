@@ -72,7 +72,7 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
-
+        <version>3.5.1</version>
         <configuration>
           <excludeDependencies>true</excludeDependencies>
 			 <instructions>
