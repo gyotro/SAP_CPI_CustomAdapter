@@ -3,7 +3,8 @@ package sap_custom_adapter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.*;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.impl.ScheduledPollConsumer;
 
 import java.sql.Connection;
@@ -27,31 +28,18 @@ public class SAP_Custom_AdapterConsumer extends ScheduledPollConsumer {
     public SAP_Custom_AdapterConsumer(SAP_Custom_AdapterEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
         this.endpoint = endpoint;
+
         Long interval = endpoint.getPollingInterval();
         if (interval != null) {
             setDelay(interval);
-            setInitialDelay(interval);
-            log.info("Polling interval configured to {} ms (applied to delay and initial delay)", interval);
-        } else {
-            log.warn("Polling interval is not set. Using default values.");
+            log.info("Polling interval set to {} ms", interval);
         }
-
-        setUseFixedDelay(true); // Important to ensure fixed delay behavior
     }
 
     @Override
     protected int poll() throws Exception {
         log.info("Polling with SELECT query: {}", endpoint.getSelectQuery());
 
-        CloudConnectorContext context = new CloudConnectorContext();
-        context.setConnectionType(ConnectionType.TCP);
-
-        CloudConnectorProperties ccProperties = ITApiFactory.getService(CloudConnectorProperties.class, context);
-        if (ccProperties == null) {
-            throw new IllegalStateException("Cloud Connector Properties service not available.");
-        }
-
-        // Manually construct JDBC URL using host and port
         String jdbcUrl = String.format("jdbc:sqlserver://%s:%s",
                 endpoint.getDbHost(), endpoint.getDbPort());
 
@@ -64,7 +52,22 @@ public class SAP_Custom_AdapterConsumer extends ScheduledPollConsumer {
         Properties props = new Properties();
         props.put("user", endpoint.getDbUser());
         props.put("password", endpoint.getDbPassword());
-        props.put("sap.cloud.connector.locationid", endpoint.getCloudConnectorLocation());
+
+        // Conditionally use Cloud Connector if location ID is provided
+        if (endpoint.getCloudConnectorLocation() != null && !endpoint.getCloudConnectorLocation().isEmpty()) {
+            log.info("Using Cloud Connector with location ID: {}", endpoint.getCloudConnectorLocation());
+            CloudConnectorContext context = new CloudConnectorContext();
+            context.setConnectionType(ConnectionType.TCP);
+
+            CloudConnectorProperties ccProperties = ITApiFactory.getService(CloudConnectorProperties.class, context);
+            if (ccProperties == null) {
+                throw new IllegalStateException("Cloud Connector Properties service not available.");
+            }
+
+            props.put("sap.cloud.connector.locationid", endpoint.getCloudConnectorLocation());
+        } else {
+            log.info("Using direct cloud connection without Cloud Connector");
+        }
 
         try (Connection conn = DriverManager.getConnection(jdbcUrl, props);
              Statement stmt = conn.createStatement();
