@@ -63,6 +63,61 @@
       <version>1.18.30</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.sap.cloud.adk/generic.api -->
+    <dependency>
+      <groupId>com.sap.cloud.adk</groupId>
+      <artifactId>generic.api</artifactId>
+      <version>3.16.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.sap.cloud.adk/adapter.api -->
+    <dependency>
+      <groupId>com.sap.cloud.adk</groupId>
+      <artifactId>adapter.api</artifactId>
+      <version>3.16.0</version>
+    </dependency>
+
+    <!-- Microsoft SQL JDBC Driver -->
+    <dependency>
+      <groupId>com.microsoft.sqlserver</groupId>
+      <artifactId>mssql-jdbc</artifactId>
+      <version>12.4.0.jre8</version>
+    </dependency>
+
+    <!-- MSAL4J for AAD auth -->
+    <dependency>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>msal4j</artifactId>
+      <version>1.13.8</version>
+    </dependency>
+
+    <!-- Nimbus (compatible versions) -->
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>oauth2-oidc-sdk</artifactId>
+      <version>9.15</version>
+    </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>9.15</version>
+    </dependency>
+
+    <!-- JSON lib required by Nimbus -->
+    <dependency>
+      <groupId>net.minidev</groupId>
+      <artifactId>json-smart</artifactId>
+      <version>2.4.10</version>
+    </dependency>
+
+    <!-- HTTP client for MSAL -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.14</version>
+    </dependency>
+
+
   </dependencies>
 
   <build>

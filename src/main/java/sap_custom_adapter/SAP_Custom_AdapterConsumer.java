@@ -1,4 +1,3 @@
-
 package sap_custom_adapter;
 
 import lombok.Getter;
@@ -13,6 +12,11 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Properties;
 
+import com.sap.it.api.ITApiFactory;
+import com.sap.it.api.ccs.adapter.CloudConnectorContext;
+import com.sap.it.api.ccs.adapter.CloudConnectorProperties;
+import com.sap.it.api.ccs.adapter.ConnectionType;
+
 @Slf4j
 @Getter
 @Setter
@@ -23,25 +27,46 @@ public class SAP_Custom_AdapterConsumer extends ScheduledPollConsumer {
     public SAP_Custom_AdapterConsumer(SAP_Custom_AdapterEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
         this.endpoint = endpoint;
+        Long interval = endpoint.getPollingInterval();
+        if (interval != null) {
+            setDelay(interval);
+            setInitialDelay(interval);
+            log.info("Polling interval configured to {} ms (applied to delay and initial delay)", interval);
+        } else {
+            log.warn("Polling interval is not set. Using default values.");
+        }
+
+        setUseFixedDelay(true); // Important to ensure fixed delay behavior
     }
 
     @Override
     protected int poll() throws Exception {
         log.info("Polling with SELECT query: {}", endpoint.getSelectQuery());
 
-        String connectionString = String.format("jdbc:sqlserver://%s:%s;%s",
-                endpoint.getDbHost(),
-                endpoint.getDbPort(),
-                endpoint.getCustomConnectionString() != null ? endpoint.getCustomConnectionString() : "");
+        CloudConnectorContext context = new CloudConnectorContext();
+        context.setConnectionType(ConnectionType.TCP);
 
-        log.debug("Connecting to database using Cloud Connector at {}", connectionString);
+        CloudConnectorProperties ccProperties = ITApiFactory.getService(CloudConnectorProperties.class, context);
+        if (ccProperties == null) {
+            throw new IllegalStateException("Cloud Connector Properties service not available.");
+        }
+
+        // Manually construct JDBC URL using host and port
+        String jdbcUrl = String.format("jdbc:sqlserver://%s:%s",
+                endpoint.getDbHost(), endpoint.getDbPort());
+
+        if (endpoint.getCustomConnectionString() != null && !endpoint.getCustomConnectionString().isEmpty()) {
+            jdbcUrl += ";" + endpoint.getCustomConnectionString();
+        }
+
+        log.debug("Constructed JDBC URL: {}", jdbcUrl);
 
         Properties props = new Properties();
         props.put("user", endpoint.getDbUser());
         props.put("password", endpoint.getDbPassword());
         props.put("sap.cloud.connector.locationid", endpoint.getCloudConnectorLocation());
 
-        try (Connection conn = DriverManager.getConnection(connectionString, props);
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, props);
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(endpoint.getSelectQuery())) {
 

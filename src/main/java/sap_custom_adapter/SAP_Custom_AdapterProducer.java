@@ -16,30 +16,70 @@
  */
 package sap_custom_adapter;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.impl.DefaultProducer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-/**
- * The www.Sample.com producer.
- */
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.util.Properties;
+
+import com.sap.it.api.ITApiFactory;
+import com.sap.it.api.ccs.adapter.CloudConnectorContext;
+import com.sap.it.api.ccs.adapter.CloudConnectorProperties;
+import com.sap.it.api.ccs.adapter.ConnectionType;
+
+@Slf4j
+@Getter
+@Setter
 public class SAP_Custom_AdapterProducer extends DefaultProducer {
-    private static final transient Logger LOG = LoggerFactory.getLogger(SAP_Custom_AdapterProducer.class);
-    private SAP_Custom_AdapterEndpoint endpoint;
 
-	public SAP_Custom_AdapterProducer(SAP_Custom_AdapterEndpoint endpoint) {
+    private final SAP_Custom_AdapterEndpoint endpoint;
+
+    public SAP_Custom_AdapterProducer(SAP_Custom_AdapterEndpoint endpoint) {
         super(endpoint);
         this.endpoint = endpoint;
+
     }
 
     @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-    }
+    public void process(Exchange exchange) throws Exception {
+        log.info("Executing UPDATE query: {}", endpoint.getUpdateQuery());
 
-    public void process(final Exchange exchange) throws Exception {
-       
-    }
+        CloudConnectorContext context = new CloudConnectorContext();
+        context.setConnectionType(ConnectionType.TCP);
 
+        CloudConnectorProperties ccProperties = ITApiFactory.getService(CloudConnectorProperties.class, context);
+        if (ccProperties == null) {
+            throw new IllegalStateException("Cloud Connector Properties service not available.");
+        }
+
+        String jdbcUrl = String.format("jdbc:sqlserver://%s:%s",
+                endpoint.getDbHost(), endpoint.getDbPort());
+
+        if (endpoint.getCustomConnectionString() != null && !endpoint.getCustomConnectionString().isEmpty()) {
+            jdbcUrl += ";" + endpoint.getCustomConnectionString();
+        }
+
+        log.debug("Constructed JDBC URL: {}", jdbcUrl);
+
+        Properties props = new Properties();
+        props.put("user", endpoint.getDbUser());
+        props.put("password", endpoint.getDbPassword());
+        props.put("sap.cloud.connector.locationid", endpoint.getCloudConnectorLocation());
+
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, props);
+             PreparedStatement stmt = conn.prepareStatement(endpoint.getUpdateQuery())) {
+
+            int rowsAffected = stmt.executeUpdate();
+            log.info("Update completed. Rows affected: {}", rowsAffected);
+
+        } catch (Exception e) {
+            log.error("Error during update execution", e);
+            throw e;
+        }
+    }
 }
