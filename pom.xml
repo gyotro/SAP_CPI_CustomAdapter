@@ -177,7 +177,7 @@
               <excludeArtifactIds></excludeArtifactIds>
               
               <!-- Specify the group ids to be excluded in the dependencies -->
-              <excludeGroupIds>com.sap.cloud.adk,org.apache.camel,org.slf4j,log4j,org.projectlombok</excludeGroupIds>
+              <excludeGroupIds>com.sap.cloud.adk,org.apache.camel,org.slf4j,log4j,org.projectlombok,org.apache.httpcomponents</excludeGroupIds>
             </configuration>
           </execution>
         </executions>
