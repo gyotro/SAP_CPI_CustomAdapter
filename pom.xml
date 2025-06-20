@@ -56,13 +56,13 @@
       <scope>test</scope>
     </dependency>
     
-   <!-- ✅ Lombok (compile-time only) -->
+<!--   &lt;!&ndash; ✅ Lombok (compile-time only) &ndash;&gt;
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <version>1.18.30</version>
       <scope>provided</scope>
-    </dependency>
+    </dependency>-->
 
     <!-- https://mvnrepository.com/artifact/com.sap.cloud.adk/generic.api -->
     <dependency>

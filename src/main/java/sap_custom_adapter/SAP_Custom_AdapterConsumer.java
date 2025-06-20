@@ -1,11 +1,12 @@
 package sap_custom_adapter;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.ScheduledPollConsumer;
+import org.apache.camel.impl.DefaultProducer;
+import org.apache.camel.Producer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,63 +14,38 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Properties;
 
-import com.sap.it.api.ITApiFactory;
-import com.sap.it.api.ccs.adapter.CloudConnectorContext;
-import com.sap.it.api.ccs.adapter.CloudConnectorProperties;
-import com.sap.it.api.ccs.adapter.ConnectionType;
-
-@Slf4j
-@Getter
-@Setter
 public class SAP_Custom_AdapterConsumer extends ScheduledPollConsumer {
+
+    private static final Logger log = LoggerFactory.getLogger(SAP_Custom_AdapterConsumer.class);
 
     private final SAP_Custom_AdapterEndpoint endpoint;
 
     public SAP_Custom_AdapterConsumer(SAP_Custom_AdapterEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
         this.endpoint = endpoint;
-
-        Long interval = endpoint.getPollingInterval();
-        if (interval != null) {
-            setDelay(interval);
-            log.info("Polling interval set to {} ms", interval);
-        }
+        setDelay(endpoint.getPollingInterval());
     }
 
     @Override
     protected int poll() throws Exception {
-        log.info("Polling with SELECT query: {}", endpoint.getSelectQuery());
+        log.info("Polling database with query: " + endpoint.getSelectQuery());
 
-        String jdbcUrl = String.format("jdbc:sqlserver://%s:%s",
-                endpoint.getDbHost(), endpoint.getDbPort());
-
-        if (endpoint.getCustomConnectionString() != null && !endpoint.getCustomConnectionString().isEmpty()) {
-            jdbcUrl += ";" + endpoint.getCustomConnectionString();
-        }
-
-        log.debug("Constructed JDBC URL: {}", jdbcUrl);
+        String connectionString = String.format("jdbc:sqlserver://%s:%s;%s",
+                endpoint.getDbHost(),
+                endpoint.getDbPort(),
+                endpoint.getCustomConnectionString() != null ? endpoint.getCustomConnectionString() : "");
 
         Properties props = new Properties();
         props.put("user", endpoint.getDbUser());
         props.put("password", endpoint.getDbPassword());
-
-        // Conditionally use Cloud Connector if location ID is provided
         if (endpoint.getCloudConnectorLocation() != null && !endpoint.getCloudConnectorLocation().isEmpty()) {
-            log.info("Using Cloud Connector with location ID: {}", endpoint.getCloudConnectorLocation());
-            CloudConnectorContext context = new CloudConnectorContext();
-            context.setConnectionType(ConnectionType.TCP);
-
-            CloudConnectorProperties ccProperties = ITApiFactory.getService(CloudConnectorProperties.class, context);
-            if (ccProperties == null) {
-                throw new IllegalStateException("Cloud Connector Properties service not available.");
-            }
-
             props.put("sap.cloud.connector.locationid", endpoint.getCloudConnectorLocation());
+            log.info("Using Cloud Connector with location: " + endpoint.getCloudConnectorLocation());
         } else {
-            log.info("Using direct cloud connection without Cloud Connector");
+            log.info("Connecting without Cloud Connector.");
         }
 
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, props);
+        try (Connection conn = DriverManager.getConnection(connectionString, props);
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(endpoint.getSelectQuery())) {
 
@@ -78,14 +54,15 @@ public class SAP_Custom_AdapterConsumer extends ScheduledPollConsumer {
                 StringBuilder row = new StringBuilder();
                 int cols = rs.getMetaData().getColumnCount();
                 for (int i = 1; i <= cols; i++) {
-                    row.append(rs.getString(i)).append(i < cols ? "," : "");
+                    row.append(rs.getString(i));
+                    if (i < cols) row.append(",");
                 }
                 exchange.getIn().setBody(row.toString());
+                log.debug("Processing row: " + row);
                 getProcessor().process(exchange);
             }
-
         } catch (Exception e) {
-            log.error("Error during polling", e);
+            log.error("Polling error: ", e);
             throw e;
         }
 
