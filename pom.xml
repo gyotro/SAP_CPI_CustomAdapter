@@ -28,6 +28,13 @@
       <artifactId>camel-core</artifactId>
       <version>${camel.version}</version>
     </dependency>
+    
+<!--     https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
+<dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient</artifactId>
+    <version>4.5.5</version>
+</dependency> -->
 
     <!-- testing -->
     <dependency>
@@ -56,13 +63,6 @@
       <scope>test</scope>
     </dependency>
     
-<!--   &lt;!&ndash; ✅ Lombok (compile-time only) &ndash;&gt;
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>1.18.30</version>
-      <scope>provided</scope>
-    </dependency>-->
 
     <!-- https://mvnrepository.com/artifact/com.sap.cloud.adk/generic.api -->
     <dependency>
@@ -77,45 +77,6 @@
       <version>3.16.0</version>
     </dependency>
 
-    <!-- Microsoft SQL JDBC Driver -->
-    <dependency>
-      <groupId>com.microsoft.sqlserver</groupId>
-      <artifactId>mssql-jdbc</artifactId>
-      <version>12.4.0.jre8</version>
-    </dependency>
-
-    <!-- MSAL4J for AAD auth -->
-    <dependency>
-      <groupId>com.microsoft.azure</groupId>
-      <artifactId>msal4j</artifactId>
-      <version>1.13.8</version>
-    </dependency>
-
-    <!-- Nimbus (compatible versions) -->
-    <dependency>
-      <groupId>com.nimbusds</groupId>
-      <artifactId>oauth2-oidc-sdk</artifactId>
-      <version>9.15</version>
-    </dependency>
-    <dependency>
-      <groupId>com.nimbusds</groupId>
-      <artifactId>nimbus-jose-jwt</artifactId>
-      <version>9.15</version>
-    </dependency>
-
-    <!-- JSON lib required by Nimbus -->
-    <dependency>
-      <groupId>net.minidev</groupId>
-      <artifactId>json-smart</artifactId>
-      <version>2.4.10</version>
-    </dependency>
-
-    <!-- HTTP client for MSAL -->
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.14</version>
-    </dependency>
 
 
   </dependencies>
@@ -126,34 +87,35 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
         <version>3.5.1</version>
+        <extensions>true</extensions>
         <configuration>
           <excludeDependencies>true</excludeDependencies>
-			 <instructions>
-		      <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-		      <Bundle-Version>${project.version}</Bundle-Version>
-		      <Export-Package>sap_custom_adapter</Export-Package>
-		      <_removeheaders>Bnd-LastModified</_removeheaders>
-		      <_nouses>true</_nouses>
-			    </instructions>
+          <instructions>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <Bundle-Version>${project.version}</Bundle-Version>
+            <Export-Package>sap_custom_adapter</Export-Package>
+			  <Include-Resource>
+			src/main/resources/,libs/
+            </Include-Resource>
+            <Bundle-ClassPath>
+              .,mssql-jdbc-12.4.0.jre8.jar,msal4j-1.13.8.jar,
+              oauth2-oidc-sdk-9.15.jar,nimbus-jose-jwt-9.15.jar,
+              json-smart-2.4.7.jar
+            </Bundle-ClassPath>
+			<Import-Package>
+			org.apache.camel,
+			org.apache.camel.impl,
+			org.apache.camel.spi,
+			org.slf4j
+			</Import-Package>
+          </instructions>
         </configuration>
       </plugin>
      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.3.2</version>
-        <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
-          <annotationProcessorPaths>
-            <path>
-              <groupId>org.projectlombok</groupId>
-              <artifactId>lombok</artifactId>
-              <version>1.18.30</version>
-            </path>
-          </annotationProcessorPaths>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -177,7 +139,7 @@
               <excludeArtifactIds></excludeArtifactIds>
               
               <!-- Specify the group ids to be excluded in the dependencies -->
-              <excludeGroupIds>com.sap.cloud.adk,org.apache.camel,org.slf4j,log4j,org.projectlombok,org.apache.httpcomponents</excludeGroupIds>
+              <excludeGroupIds>com.sap.cloud.adk,org.apache.camel,org.slf4j,log4j</excludeGroupIds>
             </configuration>
           </execution>
         </executions>

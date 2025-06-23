@@ -40,5 +40,11 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="libs/json-smart-2.4.7.jar"/>
+	<classpathentry kind="lib" path="libs/msal4j-1.13.8.jar"/>
+	<classpathentry kind="lib" path="libs/mssql-jdbc-12.4.0.jre8.jar"/>
+	<classpathentry kind="lib" path="libs/nimbus-jose-jwt-9.15.jar"/>
+	<classpathentry kind="lib" path="libs/oauth2-oidc-sdk-9.15.jar"/>
+	<classpathentry kind="lib" path="libs/httpclient-4.5.5.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
